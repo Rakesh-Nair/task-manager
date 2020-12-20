@@ -67,6 +67,19 @@ app.patch('/users/:id', async (req, res) => {
     }
 });
 
+app.delete('/users/:id', async (req, res) => {
+    const user = await User.findByIdAndDelete(req.params.id);
+    try {
+        if (!user) {
+            return res.status(400).send({ error: 'User not found !' });
+        }
+        res.status(200).send();
+    }
+    catch (e) {
+        return res.status(500).send({ error: 'Unable to Delete !' });
+    }
+});
+
 app.get('/tasks', async (req, res) => {
     try {
         const tasks = await Task.find({});
@@ -122,6 +135,20 @@ app.patch('/tasks/:id', async (req, res) => {
         res.status(400).send(e);
     }
 });
+
+app.delete('/tasks/:id', async (req, res) => {
+    const task = await Task.findByIdAndDelete(req.params.id);
+    try {
+        if (!task) {
+            return res.status(400).send({ error: 'Task not found !' });
+        }
+        res.status(200).send();
+    }
+    catch (e) {
+        return res.status(500).send({ error: 'Unable to Delete !' });
+    }
+});
+
 app.listen(port, () => {
     console.log('Server started at PORT ' + port);
 })
