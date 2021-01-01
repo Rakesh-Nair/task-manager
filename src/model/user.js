@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const validator = require('validator');
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 
 const userSchema = new mongoose.Schema({
     name: {
@@ -14,7 +15,7 @@ const userSchema = new mongoose.Schema({
         trim: true,
         validate(password) {
             if (!validator.isLength(password, { min: 6, max: 20 })) {
-                throw new Error('Password must have length 6 - 20');
+                //throw new Error('Password must have length 6 - 20');
             }
 
             if (password.toLowerCase().includes('password')) {
@@ -42,8 +43,15 @@ const userSchema = new mongoose.Schema({
                 throw new Error('Age must be a Positive Number');
             }
         }
-    }
+    },
+    tokens: [{
+        token: {
+            type: String,
+            required: true
+        }
+    }]
 })
+//Find User by Credentials
 userSchema.statics.findByCredentials = async (email, password) => {
     const user = await User.findOne({ email });
 
@@ -58,7 +66,17 @@ userSchema.statics.findByCredentials = async (email, password) => {
     }
 
     return user;
+};
+
+//Generate JWT
+userSchema.methods.generateAuthToken = async function () {
+    const user = this;
+    const token = jwt.sign({ _id: user._id.toString() }, 'MY_SECRET_STRING');
+    user.tokens = user.tokens.concat({ token });
+    await user.save();
+    return token;
 }
+
 //Hashing the Plain text
 userSchema.pre('save', async function (next) {
     const user = this;
